@@ -1,8 +1,9 @@
 /* eslint-disable camelcase */
+
 const axios = require('axios');
 const dayjs = require('dayjs');
 
-const ApiConnect = async (req, res) => {
+exports.apiConnect = async (req, res, next) => {
 	const INSEEToken = await axios.post('https://api.insee.fr/token',
 		new URLSearchParams({
 			grant_type: 'client_credentials',
@@ -14,7 +15,7 @@ const ApiConnect = async (req, res) => {
 			},
 		})
 		.then(response => response.data)
-		.catch(() => {});
+		.catch(error => res.status(500).json(error));
 
 	const PISTEToken = await axios.post('https://sandbox-oauth.piste.gouv.fr/api/oauth/token',
 		new URLSearchParams({
@@ -28,7 +29,7 @@ const ApiConnect = async (req, res) => {
 			},
 		})
 		.then(response => response.data)
-		.catch(() => {});
+		.catch(error => res.status(500).json(error));
 
 	const BearerToken = {
 		INSEEToken,
@@ -36,7 +37,7 @@ const ApiConnect = async (req, res) => {
 		expirationDate: dayjs().add(1, 'hour').format('YYYY-MM-DD HH:mm:ss'),
 	};
 
-	res.status(200).json(BearerToken);
+	console.log('apiConnect middleware');
+	req.tokens = BearerToken;
+	next();
 };
-
-module.exports = {ApiConnect};
